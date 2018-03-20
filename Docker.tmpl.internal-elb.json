@@ -1411,7 +1411,7 @@
         "ManagerLaunchConfig17120ceaws1": {
             "DependsOn": "InternalLoadBalancer",
             "Properties": {
-                "AssociatePublicIpAddress": "true",
+                "AssociatePublicIpAddress": "false",
                 "BlockDeviceMappings": [
                     {
                         "DeviceName": "/dev/xvdb",
@@ -1993,7 +1993,7 @@
         "NodeLaunchConfig17120ceaws1": {
             "DependsOn": "ManagerAsg",
             "Properties": {
-                "AssociatePublicIpAddress": "true",
+                "AssociatePublicIpAddress": "false",
                 "BlockDeviceMappings": [
                     {
                         "DeviceName": "/dev/xvdb",
