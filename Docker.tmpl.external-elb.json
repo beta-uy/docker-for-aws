@@ -441,23 +441,6 @@
                 "docker": "17.12.0-ce",
                 "forAws": "17.12.0-ce-aws1"
             }
-        },
-        "VpcCidrs": {
-            "pubsubnet1": {
-                "cidr": "172.32.0.0/20"
-            },
-            "pubsubnet2": {
-                "cidr": "172.32.16.0/20"
-            },
-            "pubsubnet3": {
-                "cidr": "172.32.32.0/20"
-            },
-            "pubsubnet4": {
-                "cidr": "172.32.48.0/20"
-            },
-            "vpc": {
-                "cidr": "172.32.0.0/16"
-            }
         }
     },
     "Metadata": {
@@ -628,6 +611,11 @@
         }
     },
     "Parameters": {
+        "ClusterCidrBlock": {
+            "Default": "172.32.0.0",
+            "Description": "Cluster CIDR IP block (e.g. 172.32.0.0).",
+            "Type": "String"
+        },
         "ClusterSize": {
             "Default": "5",
             "Description": "Number of worker nodes in the Swarm (0-1000).",
@@ -2280,13 +2268,7 @@
                 ],
                 "SecurityGroupIngress": [
                     {
-                        "CidrIp": {
-                            "Fn::FindInMap": [
-                                "VpcCidrs",
-                                "vpc",
-                                "cidr"
-                            ]
-                        },
+                        "CidrIp": { "Fn::Select": [0, { "Fn::Cidr": [{ "Ref": "ClusterCidrBlock" }, 3, "16"] }] },
                         "FromPort": "0",
                         "IpProtocol": "-1",
                         "ToPort": "65535"
@@ -2441,13 +2423,7 @@
                         }
                     ]
                 },
-                "CidrBlock": {
-                    "Fn::FindInMap": [
-                        "VpcCidrs",
-                        "pubsubnet1",
-                        "cidr"
-                    ]
-                },
+                "CidrBlock": { "Fn::Select": [0, { "Fn::Cidr": [{ "Ref": "ClusterCidrBlock" }, 3, "20"] }] },
                 "Tags": [
                     {
                         "Key": "Name",
@@ -2502,13 +2478,7 @@
                         }
                     ]
                 },
-                "CidrBlock": {
-                    "Fn::FindInMap": [
-                        "VpcCidrs",
-                        "pubsubnet2",
-                        "cidr"
-                    ]
-                },
+                "CidrBlock": { "Fn::Select": [1, { "Fn::Cidr": [{ "Ref": "ClusterCidrBlock" }, 3, "20"] }] },
                 "Tags": [
                     {
                         "Key": "Name",
@@ -2563,13 +2533,7 @@
                         }
                     ]
                 },
-                "CidrBlock": {
-                    "Fn::FindInMap": [
-                        "VpcCidrs",
-                        "pubsubnet3",
-                        "cidr"
-                    ]
-                },
+                "CidrBlock": { "Fn::Select": [2, { "Fn::Cidr": [{ "Ref": "ClusterCidrBlock" }, 3, "20"] }] },
                 "Tags": [
                     {
                         "Key": "Name",
@@ -2878,13 +2842,7 @@
                 "GroupDescription": "Swarm wide access",
                 "SecurityGroupIngress": [
                     {
-                        "CidrIp": {
-                            "Fn::FindInMap": [
-                                "VpcCidrs",
-                                "vpc",
-                                "cidr"
-                            ]
-                        },
+                        "CidrIp": { "Fn::Select": [0, { "Fn::Cidr": [{ "Ref": "ClusterCidrBlock" }, 3, "16"] }] },
                         "FromPort": "0",
                         "IpProtocol": "-1",
                         "ToPort": "65535"
@@ -2921,13 +2879,7 @@
         },
         "Vpc": {
             "Properties": {
-                "CidrBlock": {
-                    "Fn::FindInMap": [
-                        "VpcCidrs",
-                        "vpc",
-                        "cidr"
-                    ]
-                },
+                "CidrBlock": { "Fn::Select": [0, { "Fn::Cidr": [{ "Ref": "ClusterCidrBlock" }, 3, "16"] }] },
                 "EnableDnsHostnames": "true",
                 "EnableDnsSupport": "true",
                 "Tags": [
