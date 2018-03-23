@@ -1133,14 +1133,8 @@
         "InternalLoadBalancerSG": {
             "DependsOn": "Vpc",
             "Properties": {
-                "GroupDescription": "External Load Balancer SecurityGroup",
+                "GroupDescription": "Internal Load Balancer SecurityGroup",
                 "SecurityGroupIngress": [
-                    {
-                        "CidrIp": "0.0.0.0/0",
-                        "FromPort": "0",
-                        "IpProtocol": "-1",
-                        "ToPort": "65535"
-                    }
                 ],
                 "VpcId": {
                     "Ref": "Vpc"
