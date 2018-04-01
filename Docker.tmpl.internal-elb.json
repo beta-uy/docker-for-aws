@@ -485,6 +485,18 @@
                 },
                 {
                     "Label": {
+                        "default": "Bastion hosts Properties"
+                    },
+                    "Parameters": [
+                        "BastionSSHPort",
+                        "BastionSize",
+                        "BastionInstanceType",
+                        "BastionDiskSize",
+                        "BastionDiskType"
+                    ]
+                },
+                {
+                    "Label": {
                         "default": "Swarm Manager Properties"
                     },
                     "Parameters": [
@@ -528,6 +540,21 @@
                 },
                 "KeyName": {
                     "default": "Which SSH key to use?"
+                },
+                "BastionSSHPort": {
+                    "default": "What port should we use for SSH?"
+                },
+                "BastionInstanceType": {
+                    "default": "Bastion host instance type?"
+                },
+                "BastionSize": {
+                    "default": "Number of Bastion hosts?"
+                },
+                "BastionDiskSize": {
+                    "default": "Bastion ephemeral storage volume size?"
+                },
+                "BastionDiskType": {
+                    "default": "Bastion ephemeral storage volume type"
                 },
                 "ManagerDiskSize": {
                     "default": "Manager ephemeral storage volume size?"
@@ -736,6 +763,29 @@
             "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
+        "BastionSSHPort": {
+            "Default": "22",
+            "Description": "Port for SSH use at Bastion hosts",
+            "MaxValue": "65536",
+            "MinValue": "0",
+            "Type": "Number"
+        },
+        "BastionDiskSize": {
+            "Default": "20",
+            "Description": "Size of Bastion's ephemeral storage volume in GiB",
+            "MaxValue": "1024",
+            "MinValue": "20",
+            "Type": "Number"
+        },
+        "BastionDiskType": {
+            "AllowedValues": [
+                "standard",
+                "gp2"
+            ],
+            "Default": "standard",
+            "Description": "Bastion ephemeral storage volume type",
+            "Type": "String"
+        },
         "ManagerDiskSize": {
             "Default": "20",
             "Description": "Size of Manager's ephemeral storage volume in GiB",
@@ -811,6 +861,64 @@
             ],
             "Default": "3",
             "Description": "Number of Swarm manager nodes (1, 3, 5)",
+            "Type": "Number"
+        },
+        "BastionInstanceType": {
+            "AllowedValues": [
+                "t2.micro",
+                "t2.small",
+                "t2.medium",
+                "t2.large",
+                "t2.xlarge",
+                "t2.2xlarge",
+                "m4.large",
+                "m4.xlarge",
+                "m4.2xlarge",
+                "m4.4xlarge",
+                "m4.10xlarge",
+                "m4.16xlarge",
+                "m3.medium",
+                "m3.large",
+                "m3.xlarge",
+                "m3.2xlarge",
+                "c4.large",
+                "c4.xlarge",
+                "c4.2xlarge",
+                "c4.4xlarge",
+                "c4.8xlarge",
+                "c3.large",
+                "c3.xlarge",
+                "c3.2xlarge",
+                "c3.4xlarge",
+                "c3.8xlarge",
+                "r3.large",
+                "r3.xlarge",
+                "r3.2xlarge",
+                "r3.4xlarge",
+                "r3.8xlarge",
+                "r4.large",
+                "r4.xlarge",
+                "r4.2xlarge",
+                "r4.4xlarge",
+                "r4.8xlarge",
+                "r4.16xlarge",
+                "i3.large",
+                "i3.xlarge",
+                "i3.2xlarge",
+                "i3.4xlarge",
+                "i3.8xlarge",
+                "i3.16xlarge"
+            ],
+            "ConstraintDescription": "Must be a valid EC2 HVM instance type.",
+            "Default": "t2.micro",
+            "Description": "EC2 HVM instance type (t2.micro, m3.medium, etc).",
+            "Type": "String"
+        },
+        "BastionSize": {
+            "Default": "1",
+            "Description": "Number of bastion hosts in the Swarm (1-1000).",
+            "MaxValue": "100",
+            "MinValue": "1",
             "Type": "Number"
         },
         "WorkerDiskSize": {
@@ -2957,6 +3065,256 @@
             "Type": "AWS::IAM::InstanceProfile"
         },
         "WorkerRole": {
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com",
+                                    "autoscaling.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "Path": "/"
+            },
+            "Type": "AWS::IAM::Role"
+        },
+        "BastionAsg": {
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Count": {
+                        "Ref": "BastionSize"
+                    },
+                    "Timeout": "PT20M"
+                }
+            },
+            "DependsOn": [
+                "SwarmDynDBTable",
+                "PubSubnetAz1",
+                "PubSubnetAz2",
+                "PubSubnetAz3"
+            ],
+            "Properties": {
+                "DesiredCapacity": {
+                    "Ref": "BastionSize"
+                },
+                "HealthCheckGracePeriod": 300,
+                "HealthCheckType": "EC2",
+                "LaunchConfigurationName": {
+                    "Ref": "BastionLaunchConfig17120ceaws1"
+                },
+                "MaxSize": 100,
+                "MetricsCollection": [
+                    {
+                        "Granularity": "1Minute"
+                    }
+                ],
+                "MinSize": 0,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "PropagateAtLaunch": true,
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "Bastion"
+                                ]
+                            ]
+                        }
+                    },
+                    {
+                        "Key": "swarm-node-type",
+                        "PropagateAtLaunch": true,
+                        "Value": "bastion"
+                    },
+                    {
+                        "Key": "swarm-stack-id",
+                        "PropagateAtLaunch": true,
+                        "Value": {
+                            "Ref": "AWS::StackId"
+                        }
+                    }
+                ],
+                "VPCZoneIdentifier": [
+                    {
+                        "Fn::If": [
+                            "HasOnly2AZs",
+                            {
+                                "Fn::Join": [
+                                    ",",
+                                    [
+                                        {
+                                            "Ref": "PubSubnetAz1"
+                                        },
+                                        {
+                                            "Ref": "PubSubnetAz2"
+                                        }
+                                    ]
+                                ]
+                            },
+                            {
+                                "Fn::Join": [
+                                    ",",
+                                    [
+                                        {
+                                            "Ref": "PubSubnetAz1"
+                                        },
+                                        {
+                                            "Ref": "PubSubnetAz2"
+                                        },
+                                        {
+                                            "Ref": "PubSubnetAz3"
+                                        }
+                                    ]
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "UpdatePolicy": {
+                "AutoScalingRollingUpdate": {
+                    "MaxBatchSize": "1",
+                    "MinInstancesInService": {
+                        "Ref": "ManagerSize"
+                    },
+                    "PauseTime": "PT20M",
+                    "WaitOnResourceSignals": "true"
+                }
+            }
+        },
+        "BastionLaunchConfig17120ceaws1": {
+            "Properties": {
+                "AssociatePublicIpAddress": "true",
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/xvdb",
+                        "Ebs": {
+                            "VolumeSize": {
+                                "Ref": "BastionDiskSize"
+                            },
+                            "VolumeType": {
+                                "Ref": "BastionDiskType"
+                            }
+                        }
+                    }
+                ],
+                "EbsOptimized": {
+                    "Fn::If": [
+                        "EBSOptimized",
+                        "true",
+                        "false"
+                    ]
+                },
+                "IamInstanceProfile": {
+                    "Ref": "BastionInstanceProfile"
+                },
+                "ImageId": "ami-49e5cb5e",
+                "InstanceType": {
+                    "Ref": "BastionInstanceType"
+                },
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "BastionVpcSG"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/sh\n",
+                                "apt-get update && apt-get install -y libpam-google-authenticator\n",
+                                "google-authenticator -t -r 3 -R 30 -w 3 -d -f\n",
+                                "echo '\nauth required pam_google_authenticator.so\n' | tee -a /etc/pam.d/sshd\n",
+                                "sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config\n",
+                                "sed -i 's/Port 22/Port ",
+                                {
+                                    "Ref": "BastionSSHPort"
+                                },
+                                "/' /etc/ssh/sshd_config\n",
+                                "echo '\nAuthenticationMethods publickey,password publickey,keyboard-interactive\n' | tee -a /etc/ssh/sshd_config\n",
+                                "sed -i 's/@include common-auth/#@include common-auth/' /etc/pam.d/sshd\n",
+                                "systemctl restart --no-block sshd.service\n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration"
+        },
+        "BastionVpcSG": {
+            "Properties": {
+                "GroupDescription": "Bastion SecurityGroup",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": {
+                            "Ref": "BastionSSHPort"
+                        },
+                        "IpProtocol": "tcp",
+                        "ToPort": {
+                            "Ref": "BastionSSHPort"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "Vpc"
+                }
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "BastionInstanceProfile": {
+            "DependsOn": "BastionRole",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "BastionRole"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::InstanceProfile"
+        },
+        "BastionPolicies": {
+            "DependsOn": "BastionRole",
+            "Properties": {
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Deny",
+                            "Action": "*",
+                            "Resource": "*"
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "PolicyName": "bastion-policy",
+                "Roles": [
+                    {
+                        "Ref": "BastionRole"
+                    }
+                ]
+            },
+            "Type": "AWS::IAM::Policy"
+        },
+        "BastionRole": {
             "Properties": {
                 "AssumeRolePolicyDocument": {
                     "Statement": [
