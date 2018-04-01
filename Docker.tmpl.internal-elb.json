@@ -3088,14 +3088,6 @@
             "Type": "AWS::IAM::Role"
         },
         "BastionAsg": {
-            "CreationPolicy": {
-                "ResourceSignal": {
-                    "Count": {
-                        "Ref": "BastionSize"
-                    },
-                    "Timeout": "PT20M"
-                }
-            },
             "DependsOn": [
                 "PubSubnetAz1",
                 "PubSubnetAz2",
