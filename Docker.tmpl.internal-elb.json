@@ -3097,7 +3097,6 @@
                 }
             },
             "DependsOn": [
-                "SwarmDynDBTable",
                 "PubSubnetAz1",
                 "PubSubnetAz2",
                 "PubSubnetAz3"
