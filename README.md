@@ -1,3 +1,9 @@
+Upload:
+
+```
+(FILE=Docker.tmpl.external-elb.json checksum=$(md5 -q ./$FILE) && aws s3 cp ./$FILE s3://cf-cloudformation-templates/$FILE.$checksum)
+```
+
 # References
 
 - https://www.terraform.io/docs/providers/aws/r/cloudwatch_log_metric_filter.html
