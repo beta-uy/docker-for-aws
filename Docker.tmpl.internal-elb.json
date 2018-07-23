@@ -1117,7 +1117,10 @@
       "Type": "AWS::IAM::Policy"
     },
     "GetECRTokenPolicies": {
-      "DependsOn": "WorkerRole",
+      "DependsOn": [
+        "WorkerRole",
+        "ProxyRole"
+      ],
       "Properties": {
         "PolicyDocument": {
           "Statement": [
@@ -1133,6 +1136,9 @@
         "Roles": [
           {
             "Ref": "ProxyRole"
+          },
+          {
+            "Ref": "WorkerRole"
           }
         ]
       },
