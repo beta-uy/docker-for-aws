@@ -3121,6 +3121,12 @@
       "Type": "AWS::IAM::Role"
     },
     "BastionAsg": {
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": 0,
+          "Timeout": "PT5M"
+        }
+      },
       "DependsOn": [
         "PubSubnetAz1",
         "PubSubnetAz2",
@@ -3135,7 +3141,7 @@
         "LaunchConfigurationName": {
           "Ref": "BastionLaunchConfig17120ceaws1"
         },
-        "MaxSize": 100,
+        "MaxSize": 10,
         "MetricsCollection": [
           {
             "Granularity": "1Minute"
@@ -3210,13 +3216,8 @@
       },
       "Type": "AWS::AutoScaling::AutoScalingGroup",
       "UpdatePolicy": {
-        "AutoScalingRollingUpdate": {
-          "MaxBatchSize": "1",
-          "MinInstancesInService": {
-            "Ref": "ManagerSize"
-          },
-          "PauseTime": "PT20M",
-          "WaitOnResourceSignals": "true"
+        "AutoScalingReplacingUpdate": {
+          "WillReplace": "true"
         }
       }
     },
