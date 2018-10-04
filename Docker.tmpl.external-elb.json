@@ -1144,6 +1144,33 @@
       },
       "Type": "AWS::IAM::Policy"
     },
+    "SendEmailPolicy": {
+      "DependsOn": [
+        "WorkerRole"
+      ],
+      "Properties": {
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "PolicyName": "ses-send-email",
+        "Roles": [
+          {
+            "Ref": "WorkerRole"
+          }
+        ]
+      },
+      "Type": "AWS::IAM::Policy"
+    },
     "DynDBWorkerPolicies": {
       "DependsOn": [
         "WorkerRole",
